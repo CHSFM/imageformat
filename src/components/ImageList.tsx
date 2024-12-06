@@ -15,6 +15,10 @@ interface Props {
 export default function ImageList({ images, onDelete, onClear, targetFormat }: Props) {
   const [converting, setConverting] = useState<Record<string, boolean>>({})
 
+  const getFileName = (file: File) => {
+    return file.name.substring(0, file.name.lastIndexOf('.')) || file.name
+  }
+
   const handleConvert = async (image: ImageFile) => {
     setConverting(prev => ({ ...prev, [image.id]: true }))
     try {
@@ -26,10 +30,7 @@ export default function ImageList({ images, onDelete, onClear, targetFormat }: P
   }
 
   const handleBatchConvert = async () => {
-    // 获取未转换的图片
     const unconvertedImages = images.filter(img => !img.converted)
-    
-    // 批量转换
     await Promise.all(
       unconvertedImages.map(image => handleConvert(image))
     )
@@ -38,7 +39,6 @@ export default function ImageList({ images, onDelete, onClear, targetFormat }: P
   const downloadAll = async () => {
     const zip = new JSZip()
     
-    // 确保所有图片都已转换
     await Promise.all(
       images.map(async (image) => {
         if (!image.converted) {
@@ -47,15 +47,14 @@ export default function ImageList({ images, onDelete, onClear, targetFormat }: P
       })
     )
 
-    // 添加到zip
-    images.forEach((image, index) => {
+    images.forEach((image) => {
       if (image.converted) {
         const base64Data = image.converted.split(',')[1]
-        zip.file(`image_${index + 1}.${targetFormat}`, base64Data, { base64: true })
+        const fileName = getFileName(image.file)
+        zip.file(`${fileName}.${targetFormat}`, base64Data, { base64: true })
       }
     })
 
-    // 下载zip
     const content = await zip.generateAsync({ type: 'blob' })
     const url = URL.createObjectURL(content)
     const link = document.createElement('a')
@@ -69,7 +68,6 @@ export default function ImageList({ images, onDelete, onClear, targetFormat }: P
     return <div className="text-center text-gray-500">暂无图片</div>
   }
 
-  // 计算未转换的图片数量
   const unconvertedCount = images.filter(img => !img.converted).length
 
   return (
@@ -125,7 +123,7 @@ export default function ImageList({ images, onDelete, onClear, targetFormat }: P
               {image.converted && (
                 <a
                   href={image.converted}
-                  download={`converted.${targetFormat}`}
+                  download={`${getFileName(image.file)}.${targetFormat}`}
                   className="bg-green-500 text-white px-3 py-1 rounded text-sm"
                 >
                   下载
