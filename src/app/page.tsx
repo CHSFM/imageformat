@@ -10,6 +10,20 @@ export default function Home() {
   const [images, setImages] = useState<ImageFile[]>([])
   const [targetFormat, setTargetFormat] = useState<string>('png')
 
+  const handleClear = () => {
+    // 清除所有预览URL
+    images.forEach(image => {
+      if (image.preview) {
+        URL.revokeObjectURL(image.preview)
+      }
+      if (image.converted) {
+        URL.revokeObjectURL(image.converted)
+      }
+    })
+    // 清空图片列表
+    setImages([])
+  }
+
   return (
     <main className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto">
@@ -35,6 +49,7 @@ export default function Home() {
           <ImageList 
             images={images} 
             onDelete={(id) => setImages(images.filter(img => img.id !== id))}
+            onClear={handleClear}
             targetFormat={targetFormat}
           />
         </div>

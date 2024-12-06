@@ -8,10 +8,11 @@ import JSZip from 'jszip'
 interface Props {
   images: ImageFile[]
   onDelete: (id: string) => void
+  onClear: () => void
   targetFormat: string
 }
 
-export default function ImageList({ images, onDelete, targetFormat }: Props) {
+export default function ImageList({ images, onDelete, onClear, targetFormat }: Props) {
   const [converting, setConverting] = useState<Record<string, boolean>>({})
 
   const handleConvert = async (image: ImageFile) => {
@@ -22,6 +23,16 @@ export default function ImageList({ images, onDelete, targetFormat }: Props) {
     } finally {
       setConverting(prev => ({ ...prev, [image.id]: false }))
     }
+  }
+
+  const handleBatchConvert = async () => {
+    // 获取未转换的图片
+    const unconvertedImages = images.filter(img => !img.converted)
+    
+    // 批量转换
+    await Promise.all(
+      unconvertedImages.map(image => handleConvert(image))
+    )
   }
 
   const downloadAll = async () => {
@@ -58,18 +69,41 @@ export default function ImageList({ images, onDelete, targetFormat }: Props) {
     return <div className="text-center text-gray-500">暂无图片</div>
   }
 
+  // 计算未转换的图片数量
+  const unconvertedCount = images.filter(img => !img.converted).length
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-medium">已上传图片</h2>
-        {images.length > 0 && (
-          <button
-            onClick={downloadAll}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-          >
-            批量下载
-          </button>
-        )}
+        <div className="flex items-center gap-4">
+          <h2 className="text-lg font-medium">已上传图片</h2>
+          {images.length > 0 && (
+            <button
+              onClick={onClear}
+              className="text-red-500 hover:text-red-600 text-sm"
+            >
+              清空全部
+            </button>
+          )}
+        </div>
+        <div className="flex gap-2">
+          {unconvertedCount > 0 && (
+            <button
+              onClick={handleBatchConvert}
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+            >
+              批量转换
+            </button>
+          )}
+          {images.length > 0 && (
+            <button
+              onClick={downloadAll}
+              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+            >
+              批量下载
+            </button>
+          )}
+        </div>
       </div>
       
       <div className="grid grid-cols-2 gap-6">
