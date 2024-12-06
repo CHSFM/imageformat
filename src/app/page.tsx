@@ -4,11 +4,11 @@ import { useState } from 'react'
 import ImageUploader from '@/components/ImageUploader'
 import ImageList from '@/components/ImageList'
 import FormatSelector from '@/components/FormatSelector'
-import { ImageFile } from '@/types'
+import { ImageFile, SupportedFormat } from '@/types'
 
 export default function Home() {
   const [images, setImages] = useState<ImageFile[]>([])
-  const [targetFormat, setTargetFormat] = useState<string>('png')
+  const [targetFormat, setTargetFormat] = useState<SupportedFormat>('png')
 
   const handleClear = () => {
     // 清除所有预览URL
@@ -39,7 +39,7 @@ export default function Home() {
               <ImageUploader onUpload={(newImages) => setImages([...images, ...newImages])} />
             </div>
             <div className="w-48">
-              <FormatSelector value={targetFormat} onChange={setTargetFormat} />
+              <FormatSelector value={targetFormat} onChange={(format) => setTargetFormat(format as SupportedFormat)} />
             </div>
           </div>
         </div>
